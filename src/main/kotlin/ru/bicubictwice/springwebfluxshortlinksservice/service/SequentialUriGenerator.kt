@@ -3,7 +3,7 @@ package ru.bicubictwice.springwebfluxshortlinksservice.service
 import org.springframework.stereotype.Component
 
 @Component
-class SequentalUriGenerator {
+class SequentialUriGenerator {
     private var array = Array(3) { alphabet[0] }
 
     var currentValue: String

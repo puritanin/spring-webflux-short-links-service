@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import ru.bicubictwice.springwebfluxshortlinksservice.model.Status
 import ru.bicubictwice.springwebfluxshortlinksservice.repository.LinksRepository
@@ -27,7 +29,7 @@ class InactivateUnusedLinks(
         inactivateUnusedLinks(timeFrom)
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, readOnly = false)
     fun inactivateUnusedLinks(timeFrom: LocalDateTime) {
         metricsRepo.findByLastUsedLessThan(timeFrom).forEach {
             val link = it.link!!

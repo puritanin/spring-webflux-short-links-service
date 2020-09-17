@@ -4,6 +4,8 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import ru.bicubictwice.springwebfluxshortlinksservice.model.Link
 import ru.bicubictwice.springwebfluxshortlinksservice.model.Metrics
@@ -17,7 +19,7 @@ import javax.annotation.PreDestroy
 class LinksService(
         @Autowired val linksRepo: LinksRepository,
         @Autowired val metricsRepo: MetricsRepository,
-        @Autowired val seqGen: SequentalUriGenerator,
+        @Autowired val seqGen: SequentialUriGenerator,
         @Autowired val utils: UrlUtils
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -64,7 +66,7 @@ class LinksService(
     }
 
 
-    @Transactional(readOnly = false)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, readOnly = false)
     fun createShortUri(redirectUrl: String): String {
         // если уже есть такая ссылка...
         linksRepo.findByRedirectUrl(redirectUrl)?.let { link ->
@@ -93,7 +95,7 @@ class LinksService(
         return link.shortUri!!
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, readOnly = false)
     fun updateLastUsedTimestamp(linkId: Long) {
         linksRepo.findOneWithMetricsById(linkId)?.let { link ->
             val metrics = link.metrics!!
@@ -102,6 +104,6 @@ class LinksService(
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED, readOnly = true)
     fun findByShortUri(uri: String) = linksRepo.findByShortUri(formatUriForDatabase(uri))
 }
