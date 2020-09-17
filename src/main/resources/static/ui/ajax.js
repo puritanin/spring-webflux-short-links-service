@@ -8,7 +8,8 @@ $(document).ready(function () {
             $( "#loading" ).show();
             $.ajax({
                 type: "POST",
-                url: "create?url=" + url,
+                url: "create",
+                data: {"data" : url},
                 dataType: "json",
                 success: function (result, status, xhr) {
                     $("#message").html(result["short"]);

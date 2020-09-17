@@ -1,4 +1,4 @@
-package ru.bicubictwice.springwebfluxshortlinksservice.rest
+package ru.bicubictwice.springwebfluxshortlinksservice.web
 
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
