@@ -1,0 +1,19 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres-test
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db1
+  springbootapp:
+    build: .
+    container_name: springbootapp-test
+    ports:
+      - 8075:8075
+    network_mode: host
+    depends_on:
+      - postgres
