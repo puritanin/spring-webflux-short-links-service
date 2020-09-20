@@ -1,12 +1,12 @@
-package ru.bicubictwice.springwebfluxshortlinksservice.service
+package ru.bicubictwice.springwebfluxshortlinksservice.service.generator
 
 import org.springframework.stereotype.Component
 
 @Component
-class SequentialUriGenerator {
+class SequentialUriGenerator : UriGenerator {
     private var array = Array(3) { alphabet[0] }
 
-    var currentValue: String
+    override var currentValue: String
         @Synchronized
         get() = array.joinToString(separator = "")
         @Synchronized
@@ -16,7 +16,7 @@ class SequentialUriGenerator {
             }
         }
 
-    val nextValue: String
+    override val nextValue: String
         @Synchronized
         get() {
             if (!incArray(array.size - 1)) {

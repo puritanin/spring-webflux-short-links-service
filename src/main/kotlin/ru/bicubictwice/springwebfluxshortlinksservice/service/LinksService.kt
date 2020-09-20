@@ -12,6 +12,7 @@ import ru.bicubictwice.springwebfluxshortlinksservice.model.Metrics
 import ru.bicubictwice.springwebfluxshortlinksservice.model.Status
 import ru.bicubictwice.springwebfluxshortlinksservice.repository.LinksRepository
 import ru.bicubictwice.springwebfluxshortlinksservice.repository.MetricsRepository
+import ru.bicubictwice.springwebfluxshortlinksservice.service.generator.UriGenerator
 import java.time.LocalDateTime
 import javax.annotation.PreDestroy
 
@@ -19,7 +20,7 @@ import javax.annotation.PreDestroy
 class LinksService(
         @Autowired val linksRepo: LinksRepository,
         @Autowired val metricsRepo: MetricsRepository,
-        @Autowired val seqGen: SequentialUriGenerator,
+        @Autowired val uriGen: UriGenerator,
         @Autowired val utils: UrlUtils
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -38,7 +39,7 @@ class LinksService(
 
 
     private val nextSequenceShortUri: String
-        get() = formatUriForDatabase(seqGen.nextValue)
+        get() = formatUriForDatabase(uriGen.nextValue)
 
     private fun formatUriForDatabase(uri: String) = uri.padStart(10, ' ')
 
@@ -46,7 +47,7 @@ class LinksService(
     private fun synchronizeSequenceValue() {
         val lastSeqValueLink = linksRepo.findTopByOrderByShortUriDesc()
         log.info("IN synchronizeSequenceValue - last seq value: ${lastSeqValueLink?.shortUri?.trim()}")
-        lastSeqValueLink?.let { seqGen.currentValue = it.shortUri!!.trim() }
+        lastSeqValueLink?.let { uriGen.currentValue = it.shortUri!!.trim() }
     }
 
     fun createRedirectUrl(redirectUrl: String): String {
