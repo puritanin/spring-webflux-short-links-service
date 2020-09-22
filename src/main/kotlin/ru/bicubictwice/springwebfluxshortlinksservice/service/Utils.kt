@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component
 @Component
 class Utils(@Autowired env: Environment) {
 
-    private var proto = env.getRequiredProperty("server.protocol").toLowerCase()
-    private var host = env.getRequiredProperty("server.host").toLowerCase()
-    private var port = env.getRequiredProperty("server.port").toInt()
+    private var proto = env.getRequiredProperty("redirect.protocol").toLowerCase()
+    private var host = env.getRequiredProperty("redirect.host").toLowerCase()
+    private var port = env.getRequiredProperty("redirect.port").toInt()
 
     private val actualPort = if (isPortCanBeOmitted) "" else ":$port"
 
