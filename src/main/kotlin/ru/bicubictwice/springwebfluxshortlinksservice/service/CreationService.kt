@@ -1,48 +1,35 @@
 package ru.bicubictwice.springwebfluxshortlinksservice.service
 
-import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import ru.bicubictwice.springwebfluxshortlinksservice.model.Link
-import ru.bicubictwice.springwebfluxshortlinksservice.model.Metrics
-import ru.bicubictwice.springwebfluxshortlinksservice.model.Status
-import ru.bicubictwice.springwebfluxshortlinksservice.repository.LinksRepository
-import ru.bicubictwice.springwebfluxshortlinksservice.repository.MetricsRepository
+import ru.bicubictwice.springwebfluxshortlinksservice.data.model.Link
+import ru.bicubictwice.springwebfluxshortlinksservice.data.model.Metrics
+import ru.bicubictwice.springwebfluxshortlinksservice.data.model.Status
+import ru.bicubictwice.springwebfluxshortlinksservice.data.repository.LinksRepository
+import ru.bicubictwice.springwebfluxshortlinksservice.service.dto.LinkDto
+import ru.bicubictwice.springwebfluxshortlinksservice.service.dto.LinkDtoMapper
 import ru.bicubictwice.springwebfluxshortlinksservice.service.generator.UriGenerator
 import java.time.LocalDateTime
-import javax.annotation.PreDestroy
 
 @Service
-class LinksService(
+class CreationService(
         @Autowired val linksRepo: LinksRepository,
-        @Autowired val metricsRepo: MetricsRepository,
         @Autowired val uriGen: UriGenerator,
-        @Autowired val utils: UrlUtils
+        @Autowired val dtoMapper: LinkDtoMapper,
+        @Autowired val utils: Utils
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineExceptionHandler { _, e ->
-        log.error("IN - CoroutineScope exception: ${e.message}", e)
-    })
-
 
     init {
         synchronizeSequenceValue()
     }
 
-    @PreDestroy
-    private fun onDestroy() = ioScope.cancel()
-
-
     private val nextSequenceShortUri: String
-        get() = formatUriForDatabase(uriGen.nextValue)
-
-    private fun formatUriForDatabase(uri: String) = uri.padStart(10, ' ')
-
+        get() = utils.formatUriForDatabase(uriGen.nextValue)
 
     private fun synchronizeSequenceValue() {
         val lastSeqValueLink = linksRepo.findTopByOrderByShortUriDesc()
@@ -50,25 +37,13 @@ class LinksService(
         lastSeqValueLink?.let { uriGen.currentValue = it.shortUri!!.trim() }
     }
 
-    fun createRedirectUrl(redirectUrl: String): String {
-        val uri = createShortUri(redirectUrl)
-        return utils.makeUrlFromSelf(uri.trim())
+    fun create(redirectUrl: String): LinkDto {
+        val link = createLink(redirectUrl)
+        return dtoMapper.toDto(link)
     }
-
-    fun getRedirectUrl(shortUri: String): String {
-        val link = findByShortUri(shortUri)
-        log.info("IN getRedirectUrl - found: $link")
-        return if (link != null && link.status == Status.ACTIVE) {
-            ioScope.launch {
-                updateLastUsedTimestamp(link.id!!)
-            }
-            link.redirectUrl!!
-        } else utils.makeUrlFromSelf()
-    }
-
 
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, readOnly = false)
-    fun createShortUri(redirectUrl: String): String {
+    fun createLink(redirectUrl: String): Link {
         // если уже есть такая ссылка...
         linksRepo.findByRedirectUrl(redirectUrl)?.let { link ->
             if (link.status == Status.NOT_ACTIVE) {
@@ -78,7 +53,7 @@ class LinksService(
             }
             // ... возвращаем ее короткую ссылку
             log.info("IN createShortUri - used exist: $link")
-            return link.shortUri!!
+            return link
         }
 
         // если ссылки не оказалось в БД, создаем новую
@@ -93,18 +68,6 @@ class LinksService(
         }
         linksRepo.save(link)
         log.info("IN createShortUri - created new: $link")
-        return link.shortUri!!
+        return link
     }
-
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ, readOnly = false)
-    fun updateLastUsedTimestamp(linkId: Long) {
-        linksRepo.findOneWithMetricsById(linkId)?.let { link ->
-            val metrics = link.metrics!!
-            metrics.lastUsed = LocalDateTime.now()
-            metricsRepo.save(metrics)
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED, readOnly = true)
-    fun findByShortUri(uri: String) = linksRepo.findByShortUri(formatUriForDatabase(uri))
 }

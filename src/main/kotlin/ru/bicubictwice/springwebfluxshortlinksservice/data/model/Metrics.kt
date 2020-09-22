@@ -1,4 +1,4 @@
-package ru.bicubictwice.springwebfluxshortlinksservice.model
+package ru.bicubictwice.springwebfluxshortlinksservice.data.model
 
 import java.time.LocalDateTime
 import javax.persistence.*

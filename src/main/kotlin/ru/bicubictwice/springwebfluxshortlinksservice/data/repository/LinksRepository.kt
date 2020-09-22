@@ -1,9 +1,9 @@
-package ru.bicubictwice.springwebfluxshortlinksservice.repository
+package ru.bicubictwice.springwebfluxshortlinksservice.data.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import ru.bicubictwice.springwebfluxshortlinksservice.model.Link
+import ru.bicubictwice.springwebfluxshortlinksservice.data.model.Link
 
 interface LinksRepository : JpaRepository<Link, Long> {
 

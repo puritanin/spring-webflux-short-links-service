@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import ru.bicubictwice.springwebfluxshortlinksservice.model.Status
-import ru.bicubictwice.springwebfluxshortlinksservice.repository.LinksRepository
-import ru.bicubictwice.springwebfluxshortlinksservice.repository.MetricsRepository
+import ru.bicubictwice.springwebfluxshortlinksservice.data.model.Status
+import ru.bicubictwice.springwebfluxshortlinksservice.data.repository.LinksRepository
+import ru.bicubictwice.springwebfluxshortlinksservice.data.repository.MetricsRepository
 import java.time.LocalDateTime
 
 @Component

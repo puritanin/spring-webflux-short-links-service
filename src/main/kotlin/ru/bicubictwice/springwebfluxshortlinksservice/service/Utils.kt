@@ -5,7 +5,7 @@ import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 @Component
-class UrlUtils(@Autowired env: Environment) {
+class Utils(@Autowired env: Environment) {
 
     private var proto = env.getRequiredProperty("server.protocol").toLowerCase()
     private var host = env.getRequiredProperty("server.host").toLowerCase()
@@ -19,4 +19,6 @@ class UrlUtils(@Autowired env: Environment) {
     fun makeUrlFromSelf(uri: String = ""): String {
         return "$proto://$host$actualPort/$uri"
     }
+
+    fun formatUriForDatabase(uri: String) = uri.padStart(10, ' ')
 }
